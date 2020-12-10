@@ -1,0 +1,126 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Graph Algorithms Comparison</title>
+			<style type="text/css">
+.inline-div {
+    display:inline-block;
+}
+.inline-txtarea {
+    resize: none;
+    border : 2px solid red;
+    height:125px;
+}
+			</style>
+	</head>
+	<script>
+	
+		function sleep(ms) {
+			return new Promise(resolve => setTimeout(resolve, ms));
+		}
+		
+		function clearCanvas(canvasId) {
+			var c = document.getElementById(canvasId);
+			var ctx = c.getContext("2d");
+			console.log(c.width);
+			console.log(c.height);
+			ctx.clearRect(0, 0, c.width, c.height);
+		}
+		
+		function drawVertice(x, y, color, canvasId) {
+			var c = document.getElementById(canvasId);
+			var ctx = c.getContext("2d");
+			ctx.fillStyle = color;
+			ctx.fillRect(x - 2, y - 2, 4, 4);			
+		}
+		
+		function drawLine(x1, y1, x2, y2, color, canvasId) {
+			var c = document.getElementById(canvasId);
+			var ctx = c.getContext("2d");
+			ctx.beginPath();
+			ctx.moveTo(x1, y1);
+			ctx.lineTo(x2, y2);
+			ctx.strokeStyle = color;
+			ctx.stroke();
+		}
+		
+		async function drawGraph(resp) {
+			for(j = 0; j < resp[0].graphs.length; j++) {
+				clearCanvas("canvas");
+				clearCanvas("canvas2");
+				
+				graph = resp[0].graphs[j];
+				for(i = 0; i < graph.edges.length; i++) {
+					drawLine(
+						graph.vertices[graph.edges[i].from].x, 
+						graph.vertices[graph.edges[i].from].y, 
+						graph.vertices[graph.edges[i].to].x, 
+						graph.vertices[graph.edges[i].to].y,
+						graph.edges[i].color, "canvas")
+				}
+				for(i = 0; i < graph.vertices.length; i++) {
+					drawVertice(graph.vertices[i].x, graph.vertices[i].y, graph.vertices[i].color, "canvas");
+				}
+				
+				graph = resp[1].graphs[j];
+				for(i = 0; i < graph.edges.length; i++) {
+					drawLine(
+						graph.vertices[graph.edges[i].from].x, 
+						graph.vertices[graph.edges[i].from].y, 
+						graph.vertices[graph.edges[i].to].x, 
+						graph.vertices[graph.edges[i].to].y,
+						graph.edges[i].color, "canvas2")
+				}
+				for(i = 0; i < graph.vertices.length; i++) {
+					drawVertice(graph.vertices[i].x, graph.vertices[i].y, graph.vertices[i].color, "canvas2");
+				}
+				
+				await sleep(200);
+			}
+			
+			document.getElementById("output").value = JSON.stringify(resp[0].graphs[resp[0].graphs.length - 1]);
+			document.getElementById("output2").value = JSON.stringify(resp[1].graphs[resp[1].graphs.length - 1]);
+			
+		}
+		
+		function sendRequest() {
+			fetch('http://localhost:8081/api/graph', {
+				method: 'POST',
+				body: document.getElementById("graph").value,
+				headers: {
+					'Content-type': 'application/json; charset=UTF-8'
+				}
+			}).then(function (response) {
+				if (response.ok) {
+					return response.json();
+				}
+				return Promise.reject(response);
+			}).then(function (data) {
+				drawGraph(data);
+				console.log(data);
+			}).catch(function (error) {
+				console.warn('Something went wrong.', error);
+			});
+		}
+	</script>
+
+	<body>
+		<div class="inline-div">
+			<p align="center"><font size="5" color="black" face="Arial">Simulated annealing</font></p>
+			<canvas id="canvas" width="1000" height="600" style="border:1px solid #000000;">
+			</canvas>
+		</div>
+		<div class="inline-div">
+			<p align="center"><font size="5" color="black" face="Arial">Genetic method</font></p>
+			<canvas id="canvas2" width="1000" height="600" style="border:1px solid #000000;">
+			</canvas>
+		</div>
+
+		<div>
+			<p><textarea id="graph" name="graph" rows="5" cols="33">[[0,1],[0,2],[0,3],[0,4],[0,7],[1,2],[1,4],[1,6],[1,9],[2,4],[2,5],[2,9],[3,4],[3,6],[3,8],[4,5],[5,6],[5,8],[5,9],[6,7],[7,8],[7,9],[8,9]]</textarea></p>
+			<p><button onclick="sendRequest()">Draw graph</button></p>
+			<p><textarea id="output" name="output" rows="5" cols="33"></textarea></p>
+			<p><textarea id="output2" name="output2" rows="5" cols="33"></textarea></p>
+		</div>
+	</body>
+</html>

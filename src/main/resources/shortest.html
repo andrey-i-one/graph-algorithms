@@ -1,0 +1,122 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Graph Algorithms Comparison</title>
+			<style type="text/css">
+.inline-div {
+    display:inline-block;
+}
+.inline-txtarea {
+    resize: none;
+    border : 2px solid red;
+    height:125px;
+}
+			</style>
+	</head>
+	<script>
+	
+		function sleep(ms) {
+			return new Promise(resolve => setTimeout(resolve, ms));
+		}
+		
+		function clearCanvas(canvasId) {
+			var c = document.getElementById(canvasId);
+			var ctx = c.getContext("2d");
+			console.log(c.width);
+			console.log(c.height);
+			ctx.clearRect(0, 0, c.width, c.height);
+		}
+		
+		function drawVertice(x, y, color, canvasId) {
+			var c = document.getElementById(canvasId);
+			var ctx = c.getContext("2d");
+			ctx.fillStyle = color;
+			ctx.fillRect(x - 2, y - 2, 4, 4);			
+		}
+		
+		function drawLine(x1, y1, x2, y2, color, canvasId) {
+			if(color != "#FFFFFF") {
+				var c = document.getElementById(canvasId);
+				var ctx = c.getContext("2d");
+				ctx.beginPath();
+				ctx.moveTo(x1, y1);
+				ctx.lineTo(x2, y2);
+				ctx.strokeStyle = color;
+				ctx.stroke();
+			}
+		}
+		
+		async function drawGraph(resp) {
+			clearCanvas("canvas");
+			clearCanvas("canvas2");
+			for(j = 0; j < resp[0].graphs.length; j++) {
+				graph = resp[0].graphs[j];
+				graph2 = resp[1].graphs[j];
+				for(i = 0; i < graph.edges.length; i++) {
+					drawLine(
+						graph.vertices[graph.edges[i].from].x, 
+						graph.vertices[graph.edges[i].from].y, 
+						graph.vertices[graph.edges[i].to].x, 
+						graph.vertices[graph.edges[i].to].y,
+						graph.edges[i].color, "canvas")
+				}
+
+				for(i = 0; i < graph2.edges.length; i++) {
+					drawLine(
+						graph2.vertices[graph2.edges[i].from].x, 
+						graph2.vertices[graph2.edges[i].from].y, 
+						graph2.vertices[graph2.edges[i].to].x, 
+						graph2.vertices[graph2.edges[i].to].y,
+						graph2.edges[i].color, "canvas2")
+				}
+				for(i = 0; i < graph.vertices.length; i++) {
+					drawVertice(graph2.vertices[i].x, graph2.vertices[i].y, graph2.vertices[i].color, "canvas2");
+				}
+				for(i = 0; i < graph.vertices.length; i++) {
+					drawVertice(graph.vertices[i].x, graph.vertices[i].y, graph.vertices[i].color, "canvas");
+				}
+				
+				await sleep(200);
+			}
+		}
+		
+		function sendRequest() {
+			fetch('http://localhost:8081/api/shortest', {
+				method: 'POST',
+				body: document.getElementById("graph").value,
+				headers: {
+					'Content-type': 'application/json; charset=UTF-8'
+				}
+			}).then(function (response) {
+				if (response.ok) {
+					return response.json();
+				}
+				return Promise.reject(response);
+			}).then(function (data) {
+				drawGraph(data);
+				console.log(data);
+			}).catch(function (error) {
+				console.warn('Something went wrong.', error);
+			});
+		}
+	</script>
+
+	<body>
+		<div class="inline-div">
+			<p align="center"><font size="5" color="black" face="Arial">Prim</font></p>
+			<canvas id="canvas" width="1000" height="600" style="border:1px solid #000000;">
+			</canvas>
+		</div>
+		<div class="inline-div">
+			<p align="center"><font size="5" color="black" face="Arial">Kruskal</font></p>
+			<canvas id="canvas2" width="1000" height="600" style="border:1px solid #000000;">
+			</canvas>
+		</div>
+
+		<div>
+			<p><textarea id="graph" name="graph" rows="5" cols="33">{"vertices":[{"color":"#FF0000","x":775,"y":125},{"color":"#FF0000","x":25,"y":225},{"color":"#FF0000","x":775,"y":375},{"color":"#FF0000","x":325,"y":425},{"color":"#FF0000","x":125,"y":175},{"color":"#FF0000","x":775,"y":325},{"color":"#FF0000","x":375,"y":475},{"color":"#FF0000","x":75,"y":125},{"color":"#FF0000","x":275,"y":125},{"color":"#FF0000","x":225,"y":375},{"color":"#FF0000","x":275,"y":475},{"color":"#FF0000","x":425,"y":375},{"color":"#FF0000","x":725,"y":25},{"color":"#FF0000","x":275,"y":25},{"color":"#FF0000","x":725,"y":25},{"color":"#FF0000","x":875,"y":25},{"color":"#FF0000","x":825,"y":275},{"color":"#FF0000","x":525,"y":75},{"color":"#FF0000","x":925,"y":275},{"color":"#FF0000","x":125,"y":25},{"color":"#FF0000","x":925,"y":325},{"color":"#FF0000","x":575,"y":475},{"color":"#FF0000","x":725,"y":225},{"color":"#FF0000","x":25,"y":325},{"color":"#FF0000","x":625,"y":25},{"color":"#FF0000","x":275,"y":325},{"color":"#FF0000","x":275,"y":175},{"color":"#FF0000","x":325,"y":375},{"color":"#FF0000","x":575,"y":475},{"color":"#FF0000","x":425,"y":75},{"color":"#FF0000","x":725,"y":75},{"color":"#FF0000","x":75,"y":325},{"color":"#FF0000","x":125,"y":475},{"color":"#FF0000","x":375,"y":425},{"color":"#FF0000","x":525,"y":375},{"color":"#FF0000","x":25,"y":325},{"color":"#FF0000","x":125,"y":75},{"color":"#FF0000","x":725,"y":375},{"color":"#FF0000","x":75,"y":425},{"color":"#FF0000","x":525,"y":75},{"color":"#FF0000","x":575,"y":75},{"color":"#FF0000","x":875,"y":75},{"color":"#FF0000","x":925,"y":25},{"color":"#FF0000","x":675,"y":425},{"color":"#FF0000","x":625,"y":75},{"color":"#FF0000","x":475,"y":75},{"color":"#FF0000","x":425,"y":525},{"color":"#FF0000","x":75,"y":325},{"color":"#FF0000","x":775,"y":125},{"color":"#FF0000","x":825,"y":225},{"color":"#FF0000","x":75,"y":475},{"color":"#FF0000","x":125,"y":325},{"color":"#FF0000","x":675,"y":275},{"color":"#FF0000","x":225,"y":425},{"color":"#FF0000","x":25,"y":225},{"color":"#FF0000","x":625,"y":425},{"color":"#FF0000","x":425,"y":25},{"color":"#FF0000","x":575,"y":325},{"color":"#FF0000","x":225,"y":75},{"color":"#FF0000","x":475,"y":225},{"color":"#FF0000","x":375,"y":475},{"color":"#FF0000","x":725,"y":275},{"color":"#FF0000","x":575,"y":75},{"color":"#FF0000","x":125,"y":75},{"color":"#FF0000","x":525,"y":325},{"color":"#FF0000","x":325,"y":475},{"color":"#FF0000","x":175,"y":525},{"color":"#FF0000","x":275,"y":325},{"color":"#FF0000","x":625,"y":25},{"color":"#FF0000","x":225,"y":425},{"color":"#FF0000","x":625,"y":75},{"color":"#FF0000","x":175,"y":225},{"color":"#FF0000","x":825,"y":75},{"color":"#FF0000","x":825,"y":275},{"color":"#FF0000","x":325,"y":125},{"color":"#FF0000","x":475,"y":425},{"color":"#FF0000","x":475,"y":525},{"color":"#FF0000","x":325,"y":475},{"color":"#FF0000","x":225,"y":75},{"color":"#FF0000","x":25,"y":475},{"color":"#FF0000","x":375,"y":425},{"color":"#FF0000","x":275,"y":325},{"color":"#FF0000","x":425,"y":125},{"color":"#FF0000","x":675,"y":375},{"color":"#FF0000","x":625,"y":325},{"color":"#FF0000","x":875,"y":125},{"color":"#FF0000","x":675,"y":25},{"color":"#FF0000","x":825,"y":175},{"color":"#FF0000","x":575,"y":125},{"color":"#FF0000","x":75,"y":225},{"color":"#FF0000","x":275,"y":125},{"color":"#FF0000","x":825,"y":75},{"color":"#FF0000","x":25,"y":175},{"color":"#FF0000","x":325,"y":275},{"color":"#FF0000","x":375,"y":125},{"color":"#FF0000","x":75,"y":425},{"color":"#FF0000","x":825,"y":125},{"color":"#FF0000","x":475,"y":125},{"color":"#FF0000","x":125,"y":275},{"color":"#FF0000","x":475,"y":25}],"edges":[]}
+</textarea></p>
+			<p><button onclick="sendRequest()">Draw graph</button></p>
+		</div>
+	</body>
+</html>

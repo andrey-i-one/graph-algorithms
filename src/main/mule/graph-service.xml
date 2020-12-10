@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:java="http://www.mulesoft.org/schema/mule/java"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd">
+	<http:listener-config name="HTTP_Listener_config"
+		doc:name="HTTP Listener config"
+		doc:id="0c391791-f84c-4625-8cc9-0a26370a2a5f">
+		<http:listener-connection host="0.0.0.0"
+			port="8081">
+		</http:listener-connection>
+	</http:listener-config>
+	<flow name="graph-api"
+		doc:id="42053a3c-0b49-4499-afc0-cfe1097fa527">
+		<http:listener doc:name="Listener"
+			doc:id="5cafb8a1-bf73-4dbc-9fba-50f6663a4f16"
+			config-ref="HTTP_Listener_config" path="/api/graph" >
+			<http:response >
+				<http:headers ><![CDATA[#[vars.outboundHeaders]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="8b26df97-092e-43c6-934a-10821a1441b2" message="#[payload]"/>
+		<set-payload value="#[%dw 2.0
+output application/java
+---
+payload]" doc:name="Set Payload" doc:id="7deadab1-6e15-4ed5-b46f-880f2c784959" />
+		<choice doc:name="Choice"
+			doc:id="1a48700b-36ed-4053-ac1e-cf2d15da36a0">
+			<when expression="#[attributes.method == 'OPTIONS']">
+				<set-variable value='#[204]' doc:name="Set Variable"
+					doc:id="1d7be450-17c6-4244-acb1-f32d35f18f9f"
+					variableName="httpStatus" />
+				<set-payload value="#['']" doc:name="Set Payload"
+					doc:id="ca9c7e6a-6841-48f7-b101-f5d67d4a6e9c" />
+			</when>
+			<otherwise>
+				<java:invoke-static doc:name="Invoke static" doc:id="eb5a2ce4-7062-4ffc-9e16-835a3d3c9f00" class="common.GraphArranger" method="getArrangement(java.lang.Object)">
+					<java:args ><![CDATA[#[{
+	"input": payload
+}]]]></java:args>
+				</java:invoke-static>
+				<set-payload value="#[%dw 2.0
+output application/json
+---
+payload]" doc:name="Set Payload" doc:id="22708a43-f1b8-4272-a011-b8b19aac30f0" />
+
+                        </otherwise>
+                
+</choice>
+                <set-variable value='#[%dw 2.0
+output application/java
+---
+{
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Methods": "*"
+}]' doc:name="Set Variable" doc:id="109eae6a-2d7a-4f2b-96b7-7e820e468ed1" variableName="outboundHeaders"/>
+	</flow>
+	<flow name="shortest-api"
+		doc:id="8f28f48b-e3b4-4820-954e-e3a40d2a1491">
+		<http:listener doc:name="Listener"
+			doc:id="1525366b-b494-4e38-9a7d-668dd9029650"
+			config-ref="HTTP_Listener_config" path="/api/shortest" >
+			<http:response >
+				<http:headers ><![CDATA[#[vars.outboundHeaders]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="ab0e7c2f-1f6f-4a74-bd22-93f412069288" message="#[payload]"/>
+		<set-payload value="#[%dw 2.0
+output application/java
+---
+payload]" doc:name="Set Payload" doc:id="4783a33b-6b5d-4ade-bbf6-0e3789a43643" />
+		<choice doc:name="Choice"
+			doc:id="92bf77c5-1f0d-43fb-99a2-5ca2a33d7b5f">
+			<when expression="#[attributes.method == 'OPTIONS']">
+				<set-variable value='#[204]' doc:name="Set Variable"
+					doc:id="ccf454df-c4e4-453d-b443-31a4dfc2d07a"
+					variableName="httpStatus" />
+				<set-payload value="#['']" doc:name="Set Payload"
+					doc:id="d049ddd7-fa83-4b72-ad6e-26a6addb152e" />
+			</when>
+			<otherwise>
+				<java:invoke-static doc:name="Invoke static" doc:id="22df5a14-542a-4ea8-b813-ff6078895c32" class="common.GraphArranger" method="getMST(java.lang.Object)">
+					<java:args ><![CDATA[#[{
+	"input": payload
+}]]]></java:args>
+				</java:invoke-static>
+				<set-payload value="#[%dw 2.0
+output application/json
+---
+payload]" doc:name="Set Payload" doc:id="cc4207c4-d2db-4be3-b088-27adf78e01cd" />
+
+                        </otherwise>
+                
+</choice>
+                <set-variable value='#[%dw 2.0
+output application/java
+---
+{
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Methods": "*"
+}]' doc:name="Set Variable" doc:id="e5e5d143-8772-4d49-8f9d-342ce71bd6b1" variableName="outboundHeaders"/>
+	</flow>
+	<flow name="graph-page" doc:id="c80269f1-0fbb-4317-9a0c-b4b7a15bc63e" >
+		<http:listener doc:name="Listener" doc:id="57b87c3e-35a6-4a83-b735-16517afc5b79" config-ref="HTTP_Listener_config" path="/graph">
+			<http:response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "text/html"
+}]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<set-payload value="#[readUrl('classpath://canvas.html', 'text/plain')]" doc:name="Set Payload" doc:id="84c6f6ce-c98a-4026-b1fd-f82d4a9aea6f" />
+	</flow>
+	<flow name="shortest-page" doc:id="e32a15af-1ffd-49c4-8a73-6492b52adf57" >
+		<http:listener doc:name="Listener" doc:id="21816f38-a850-4dc3-ae8f-b097966942a4" config-ref="HTTP_Listener_config" path="/shortest">
+			<http:response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "text/html"
+}]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<set-payload value="#[readUrl('classpath://shortest.html', 'text/plain')]" doc:name="Set Payload" doc:id="9ba4a783-1c2e-47ef-bec8-c39c014c3fc8" />
+	</flow>
+
+</mule>
